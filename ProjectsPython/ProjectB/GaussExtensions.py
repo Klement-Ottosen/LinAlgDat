@@ -50,12 +50,13 @@ def ElementaryRowReplacement(A: Matrix, i: int, m: float, j: int) -> Matrix:
         i: int, index of the row to be replaced
         m: float, the multiple of row j to be added to row i
         j: int, index or replacing row.
-
     Returns:
         A modified in-place after row replacement.
     """
-    raise NotImplementedError()
-
+    N = A.N_Cols
+    for n in range(N):
+        A[i,n] = A[i,n] + m * A[j,n]
+    return A
 
 def ElementaryRowInterchange(A: Matrix, i: int, j : int) -> Matrix:
     """
@@ -69,7 +70,10 @@ def ElementaryRowInterchange(A: Matrix, i: int, j : int) -> Matrix:
     Returns:
         A modified in-place after row interchange
     """
-    raise NotImplementedError()
+    N = A.N_Cols
+    for n in range(N):
+        A[i,n], A[j,n] = A[j,n], A[i,n]
+    return A
 
 
 def ElementaryRowScaling(A: Matrix, i: int, c: float) -> Matrix:
@@ -84,7 +88,10 @@ def ElementaryRowScaling(A: Matrix, i: int, c: float) -> Matrix:
     Returns:
         A modified in-place after row scaling.
     """
-    raise NotImplementedError()
+    N = A.N_Cols
+    for n in range(N):
+        A[i,n] = c * A[i,n]
+    return A
 
 
 def ForwardReduction(A: Matrix) -> Matrix:
@@ -101,9 +108,37 @@ def ForwardReduction(A: Matrix) -> Matrix:
         M-by-N matrix which is the row-echelon form of A (performed in-place,
         i.e., A is modified directly).
     """
-    raise NotImplementedError()
+    N = A.N_Cols
+    M = A.M_Rows
 
+    for nuRække in range(M):
+        j = None # j er pivot kolonnen
+        pivotRække = None
 
+        for n in range(N):
+            for m in range(nuRække, M):
+                if A[m,n] != 0.0:
+                    j = n
+                    pivotRække = m
+                    break # ud af nuRække til M loopet
+            if j != None:
+                break # ud af 0 til N loopet 
+        
+        # Sand hvis der kun er nul-kolonner tilbage.
+        if j == None: 
+            break
+
+        # Byt pivoten op øverst i sub Matricen
+        if nuRække != pivotRække:
+            A = ElementaryRowInterchange(A, nuRække, pivotRække)        
+
+        for i in range(nuRække + 1, M):
+            if A[i, j] != 0.0:
+                c = -A[i,j]/A[nuRække,j]
+                A = ElementaryRowReplacement(A,i,c,nuRække)
+    
+    return A
+        
 def BackwardReduction(A: Matrix) -> Matrix:
     """
     Backward reduction of matrix A.
@@ -117,7 +152,30 @@ def BackwardReduction(A: Matrix) -> Matrix:
         M-by-N matrix which is the reduced form of A (performed in-place,
         i.e., A is modified directly).
     """
-    raise NotImplementedError()
+    N = A.N_Cols
+    M = A.M_Rows
+
+    for i in range(M -1, -1, -1):
+        pivotCol = None
+        
+        for j in range(N):
+            if A[i,j] != 0.0:
+                pivotCol = j
+                break
+
+        if pivotCol == None:
+            continue
+
+        if A[i,pivotCol] != 1:
+            ElementaryRowScaling(A, i, 1/A[i,pivotCol])
+
+        for n in range(i-1,-1,-1):
+            if A[n,pivotCol] != 0.0:
+                c = -A[n, pivotCol]
+
+                A = ElementaryRowReplacement(A,n,c,i)
+
+    return A
 
 
 def GaussElimination(A: Matrix, v: Vector) -> Vector:
@@ -137,4 +195,15 @@ def GaussElimination(A: Matrix, v: Vector) -> Vector:
     Return:
          M-size solution vector of the system.
     """
-    raise NotImplementedError()
+    totalMatrice = AugmentRight(A, v)
+    
+    rækkeEchelonForm = ForwardReduction(totalMatrice)
+    
+    reduceretRækkeEchelonForm = BackwardReduction(rækkeEchelonForm)
+    
+    M = reduceretRækkeEchelonForm.M_Rows
+    solution = Vector(M)
+    for i in range(M):
+        solution[i] = reduceretRækkeEchelonForm[i, reduceretRækkeEchelonForm.N_Cols - 1]
+    
+    return solution
