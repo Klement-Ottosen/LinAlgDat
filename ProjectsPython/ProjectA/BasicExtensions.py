@@ -8,7 +8,7 @@
 import math
 import sys
 
-sys.path.append('../Core')
+sys.path.append('./Core')
 from Vector import Vector
 from Matrix import Matrix
 
@@ -53,7 +53,14 @@ def MatVecProduct(A: Matrix, v: Vector) -> Vector:
 
     :return: a size M Vector y such that y = A.v
     """
-    raise NotImplementedError("MatVecProduct is not implemented!")
+    M = A.M_Rows
+    N = v.size()
+    y = Vector(M)
+    for i in range(M):
+        for j in range(N):
+            y[i] += A[i,j] * v[j]
+    
+    return y
 
 
 def MatrixProduct(A: Matrix, B: Matrix) -> Matrix:
@@ -68,7 +75,17 @@ def MatrixProduct(A: Matrix, B: Matrix) -> Matrix:
 
     :returns: the M-by-P Matrix A*B.
     """
-    raise NotImplementedError("MatrixProduct is not implemented!")
+    M = A.M_Rows
+    P = B.N_Cols
+    N = B.M_Rows
+    C = Matrix(M, P)
+    for i in range(M):
+        for j in range(P):
+            for n in range(N):
+                C[i,j] += A[i,n] * B[n,j]
+                
+    return C
+    
 
 
 def Transpose(A: Matrix) -> Matrix:
@@ -81,7 +98,14 @@ def Transpose(A: Matrix) -> Matrix:
     :param A: A M-by-N Matrix.
     :returns: A N-by-M Matrix B such that B = A^T.
     """
-    raise NotImplementedError("Transpose is not implemented!")
+    M = A.M_Rows
+    N = A.N_Cols
+    B = Matrix(N,M)
+    for i in range(M):
+        for j in range(N):
+            B[j,i] = A[i,j]
+            
+    return B
 
 
 def VectorNorm(v: Vector) -> float:
@@ -94,4 +118,10 @@ def VectorNorm(v: Vector) -> float:
     :param v: An N - dimensional Vector.
     :return: The Euclidean norm of the Vector.
     """
-    raise NotImplementedError("VectorNorm is not implemented!")
+    N = v.size()
+    vSqrSum = 0
+    for n in range(N):
+        vSqrSum += v[n] * v[n]
+    vNorm = math.sqrt(vSqrSum)
+    
+    return vNorm
